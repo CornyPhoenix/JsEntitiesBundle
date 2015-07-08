@@ -1,0 +1,11 @@
+(function ($, exports) {
+
+    'use strict';
+
+{% for meta in metas %}
+    exports.{{ meta.functionName }} = (function($) {
+        {% include '@CherryPickJsEntities/entity.js.twig' %}
+    })($);
+{% endfor %}
+
+})(jQuery, this);

@@ -1,0 +1,8 @@
+app:
+    resource: "@AppBundle/Controller/"
+    type:     annotation
+
+rest:
+    resource: "@CherryPickJsEntitiesBundle/Controller/RESTController.php"
+    type:     annotation
+    prefix:   /data

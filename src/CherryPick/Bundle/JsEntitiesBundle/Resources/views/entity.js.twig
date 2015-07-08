@@ -1,0 +1,126 @@
+/**
+ * Generated JavaScript class for the
+ * original {{ ('{@link ' ~ meta.originalName ~ '}')|raw }} entity.
+ *
+ * @constructor
+ * @extends {{ ('{' ~ meta.superFunctionName ~ '}')|raw }}
+ */
+var {{ meta.functionName }} = {{ meta.superFunctionName }}.extend('{{ meta.originalName }}', {
+
+    constructor: function () {
+        // Initialize Associations.
+{% for association in meta.associations %}
+        this.{{ association.name }} = {{ association.isCollection ? '[]' : 'null' }};
+{% endfor %}
+
+        // Initialize Fields.
+{% for field in meta.fields %}
+        this.{{ field.name }} = null;
+{% endfor %}
+
+        this.originalName = '{{ meta.originalName|replace({'\\': '\\\\'})|raw }}';
+    },
+
+{% for association in meta.associations %}
+    /**
+     * @return {{ ('{' ~ association.type ~ '}')|raw }}
+     * @public
+     */
+    get{{ association.methodName }}: function() {
+        return this.{{ association.name }};
+    },
+
+    /**
+     * @param {{ ('{' ~ association.type ~ '}')|raw }} value
+     * @return {{ ('{' ~ meta.functionName ~ '}')|raw }}
+     * @public
+     */
+    set{{ association.methodName }}: function(value) {
+        return this.{{ association.name }} = value;
+    },
+
+{% if association.isCollection %}
+    /**
+     * @return {{ ('{Boolean}')|raw }}
+     * @public
+     */
+    has{{ association.methodName }}: function() {
+        return this.{{ association.name }}.length > 0;
+    },
+
+    /**
+     * @param {{ ('{' ~ association.singleType ~ '}')|raw }} value
+     * @return {{ ('{' ~ meta.functionName ~ '}')|raw }}
+     * @public
+     */
+    add{{ association.singleName }}: function(value) {
+        value.{{ association.invertedField }} = this;
+        this.{{ association.name }}.push(value);
+        return this;
+    },
+
+    /**
+     * @param {{ ('{' ~ association.singleType ~ '}')|raw }} value
+     * @return {{ ('{' ~ meta.functionName ~ '}')|raw }}
+     * @public
+     */
+    remove{{ association.singleName }}: function(value) {
+        var index = this.{{ association.name }}.indexOf(value);
+
+        if (index > -1) {
+            this.{{ association.name }}.splice(index, 1);
+        }
+
+        return this;
+    },
+
+{% endif %}
+{% endfor %}
+{% for field in meta.fields %}
+    /**
+     * @return {{ ('{' ~ field.type ~ '}')|raw }}
+     * @public
+     */
+    get{{ field.methodName }}: function() {
+        return this.{{ field.name }};
+    },
+
+{% if not field.isIdentifier %}
+    /**
+     * @param {{ ('{' ~ field.type ~ '}')|raw }} value
+     * @return {{ ('{' ~ meta.functionName ~ '}')|raw }}
+     * @public
+     */
+    set{{ field.methodName }}: function(value) {
+        this.{{ field.name }} = value;
+        return this;
+    },
+
+{% endif %}
+{% endfor %}
+
+    /**
+     * Converts this {{ meta.functionName }} to a JSON string.
+     *
+     * @return {{ '{String}'|raw }}
+     */
+    toJSON: function(cache) {
+        cache || (cache = []);
+        var json = {"$entity": "{{ meta.originalName }}"};
+
+{% for association in meta.associations %}
+{% if association.isCollection %}
+        json["{{ association.name }}"] = this.{{ association.name }}.map(function (entity) { return entity.getId(); });
+{% else %}
+        json["{{ association.name }}"] = this.{{ association.name }} ? this.{{ association.name }}.getId() : null;
+{% endif %}
+{% endfor %}
+{% for field in meta.fields %}
+        json["{{ field.name }}"] = this.getValue('{{ field.name }}');
+{% endfor %}
+
+        return JSON.stringify(json);
+    }
+});
+
+return {{ meta.functionName }};

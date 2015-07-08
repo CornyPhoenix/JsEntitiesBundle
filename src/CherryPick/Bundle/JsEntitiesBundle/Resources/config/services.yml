@@ -1,0 +1,24 @@
+services:
+    cherrypick.controller.rest:
+        class: CherryPick\Bundle\JsEntitiesBundle\Controller\RESTController
+        arguments:
+            - @doctrine.orm.entity_manager
+
+    cherrypick.entity_generator:
+        class: CherryPick\Bundle\JsEntitiesBundle\TwigEntityGenerator
+        arguments:
+            - @templating
+
+    cherrypick.warmer.js_converter:
+        class: CherryPick\Bundle\JsEntitiesBundle\Warmer\JsConverterWarmer
+        tags:
+            - { name: kernel.cache_warmer, priority: 0 }
+        arguments:
+            - @cherrypick.js_entity_converter
+
+    cherrypick.js_entity_converter:
+        class: CherryPick\Bundle\JsEntitiesBundle\JsEntityConverter
+        arguments:
+            - @doctrine.orm.entity_manager
+            - @cherrypick.entity_generator
+            - @kernel

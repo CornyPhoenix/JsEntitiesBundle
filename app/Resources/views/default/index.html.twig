@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    Homepage.
+{% endblock %}
+
+{% block javascripts %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script type="text/javascript" src="{{ asset('bundles/cherrypickjsentities/DBEntity.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('js/AppBundle_Entity.js') }}"></script>
+    <script>
+        var foo = new Foo();
+        foo.setAgeInYears(42);
+        foo.setMoney(13.37);
+        foo.setName('Corny');
+        foo.setCreated(new Date());
+
+//        foo.persist();
+
+        var bla = Foo.get('/data/').done(function (data) {
+            console.log(data);
+        });
+    </script>
+{% endblock %}
