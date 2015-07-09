@@ -7,6 +7,30 @@
     };
 
     DBEntity.$entities = {};
+    DBEntity.$websocket = new WebSocket('ws://localhost:843');
+    DBEntity.$websocketTickets = [];
+    DBEntity.$websocketPending = [];
+
+    /**
+     *
+     * @param {WebSocket} event
+     */
+    DBEntity.$websocket.onmessage = function (event) {
+        var data = event.data;
+        var json = JSON.parse(data);
+
+        DBEntity.$websocketTickets[json.ticket].isDone(DBEntity.parse(JSON.parse(json.response)));
+    };
+
+    /**
+     */
+    DBEntity.$websocket.onopen = function () {
+        for (var i in DBEntity.$websocketPending) {
+            DBEntity.$websocket.send(DBEntity.$websocketPending[i]);
+        }
+
+        DBEntity.$websocketPending = [];
+    };
 
     /**
      * @param {String} originalName
@@ -65,13 +89,59 @@
 
     /**
      * @param {String} method
-     * @param {String} url
      * @param {DBEntity} [entity]
+     * @param {String} [url]
      * @return {XMLHttpRequest}
      * @public
      * @static
      */
-    DBEntity.supplier = function (method, url, entity) {
+    DBEntity.supplier = function (method, entity, url) {
+        if (!url) {
+            return DBEntity.supplierWebsocket(method, entity);
+        }
+
+        return DBEntity.supplierAjax(method, url, entity);
+    };
+
+    /**
+     * @param method
+     * @param data
+     * @return {XMLHttpRequest}
+     */
+    DBEntity.supplierWebsocket = function (method, data) {
+        function cls() {
+            var doneCallbacks = [];
+            this.done = function (callback) {
+                doneCallbacks.push(callback);
+            };
+
+            this.isDone = function (data) {
+                for (var i in doneCallbacks) {
+                    doneCallbacks[i](data);
+                }
+            };
+        }
+
+        var obj = new cls();
+
+        var ticket = DBEntity.$websocketTickets.push(obj) - 1;
+
+        var options = JSON.stringify({
+            ticket: ticket,
+            method: method,
+            request: data
+        });
+
+        if (DBEntity.$websocket.readyState == WebSocket.CONNECTING) {
+            DBEntity.$websocketPending.push(options);
+            return obj;
+        }
+
+        DBEntity.$websocket.send(options);
+        return obj;
+    };
+
+    DBEntity.supplierAjax = function (method, url, data) {
         var options = {
             method: method,
             url: url,
@@ -86,8 +156,8 @@
             }
         };
 
-        if (entity) {
-            options.data = entity.toJSON();
+        if (data) {
+            options.data = JSON.stringify(data);
         }
 
         return $.ajax(options);
@@ -99,7 +169,7 @@
      * @static
      */
     DBEntity.get = function (url) {
-        return DBEntity.supplier('GET', url);
+        return DBEntity.supplier('GET', null, url);
     };
 
     /**
@@ -107,7 +177,7 @@
      * @public
      */
     DBEntity.prototype.persist = function (url) {
-        DBEntity.ajax('POST', url, this)
+        DBEntity.supplier('POST', this, url)
             .done(function (data) {
                 console.log(data);
             });

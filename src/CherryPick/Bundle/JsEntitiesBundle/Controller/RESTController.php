@@ -76,7 +76,9 @@ class RESTController
                 $type = $keys[0];
                 $value = $value[$type];
                 if ($type === '$date') {
-                    $value = new \DateTime("@$value");
+                    $datetime = new \DateTime();
+                    $datetime->setTimestamp($value);
+                    $value = $datetime;
                 }
             }
 

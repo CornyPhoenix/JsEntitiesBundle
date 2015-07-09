@@ -5,7 +5,12 @@
 {% endblock %}
 
 {% block javascripts %}
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+    <script>
+        window.WEB_SOCKET_SWF_LOCATION = "{{ asset('vendor/gimite/web-socket-js/WebSocketMain.swf') }}";
+    </script>
+    <script type="text/javascript" src="{{ asset('vendor/jquery/dist/jquery.min.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('vendor/gimite/web-socket-js/swfobject.js') }}"></script>
+    <script type="text/javascript" src="{{ asset('vendor/gimite/web-socket-js/web_socket.js') }}"></script>
     <script type="text/javascript" src="{{ asset('bundles/cherrypickjsentities/DBEntity.js') }}"></script>
     <script type="text/javascript" src="{{ asset('js/AppBundle_Entity.js') }}"></script>
     <script>
@@ -15,7 +20,7 @@
         foo.setName('Corny');
         foo.setCreated(new Date());
 
-//        foo.persist();
+        foo.persist();
 
         var bla = Foo.get('/data/').done(function (data) {
             console.log(data);
